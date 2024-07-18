@@ -23,8 +23,51 @@ func usage() {
 	flag.PrintDefaults()
 }
 
+func textToCols(in string, nCols int) string {
+	lines := strings.Split(in, "\n")
+	rows := (len(lines) / nCols) + 1
+	table := make([][]string, nCols)
+	for i := range nCols {
+		table[i] = make([]string, rows)
+	}
+
+	col := 0
+	row := 0
+	for i, line := range lines {
+		col = (i / rows) % nCols
+		row = i % rows
+		table[col][row] = line
+	}
+
+	for _, col := range table {
+		width := 0
+		for _, colText := range col {
+			if len(colText) > width {
+				width = len(colText)
+			}
+		}
+		format := fmt.Sprintf("%%-%ds", width)
+		for i, colText := range col {
+			col[i] = fmt.Sprintf(format, colText)
+		}
+	}
+
+	out := ""
+	for row := 0; row < rows; row++ {
+		for col := 0; col < nCols; col++ {
+			out += table[col][row]
+			if col < nCols-1 {
+				out += "    "
+			} else {
+				out += "\n"
+			}
+		}
+	}
+	return out
+}
+
 func main() {
-	cols := flag.Int("n", 4, "Number of columns")
+	nCols := flag.Int("n", 4, "Number of columns")
 	flag.Usage = usage
 	flag.Parse()
 
@@ -43,7 +86,7 @@ func main() {
 		file = os.Stdin
 	}
 
-	if *cols < 2 {
+	if *nCols < 2 {
 		io.Copy(os.Stdout, file)
 		os.Exit(0)
 	}
@@ -55,43 +98,5 @@ func main() {
 
 	text := string(fileBytes)
 	text = strings.ReplaceAll(text, "\r\n", "\n")
-	lines := strings.Split(text, "\n")
-
-	rows := (len(lines) / *cols) + 1
-	table := make([][]string, *cols)
-	for i := range *cols {
-		table[i] = make([]string, rows)
-	}
-
-	col := 0
-	row := 0
-	for i, line := range lines {
-		col = (i / rows) % *cols
-		row = i % rows
-		table[col][row] = line
-	}
-
-	for _, col := range table {
-		width := 0
-		for _, colText := range col {
-			if len(colText) > width {
-				width = len(colText)
-			}
-		}
-		format := fmt.Sprintf("%%-%ds", width)
-		for i, colText := range col {
-			col[i] = fmt.Sprintf(format, colText)
-		}
-	}
-
-	for row := 0; row < rows; row++ {
-		for col := 0; col < *cols; col++ {
-			fmt.Print(table[col][row])
-			if col < *cols-1 {
-				fmt.Print("    ")
-			} else {
-				fmt.Print("\n")
-			}
-		}
-	}
+	fmt.Print(textToCols(text, *nCols))
 }
