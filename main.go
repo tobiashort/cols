@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"math"
 	"os"
 	"strings"
 )
@@ -24,8 +25,10 @@ func usage() {
 }
 
 func textToCols(in string, nCols int) string {
-	lines := strings.Split(in, "\n")
-	rows := (len(lines) / nCols) + 1
+	text := strings.TrimSpace(in)
+	text = strings.ReplaceAll(text, "\r\n", "\n")
+	lines := strings.Split(text, "\n")
+	rows := int(math.Ceil(float64(len(lines)) / float64(nCols)))
 	table := make([][]string, nCols)
 	for i := range nCols {
 		table[i] = make([]string, rows)
@@ -97,6 +100,5 @@ func main() {
 	}
 
 	text := string(fileBytes)
-	text = strings.ReplaceAll(text, "\r\n", "\n")
 	fmt.Print(textToCols(text, *nCols))
 }
