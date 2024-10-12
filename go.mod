@@ -1,3 +1,3 @@
-module github.com/t-hg/cols
+module github.com/tobiashort/cols
 
 go 1.22.5
